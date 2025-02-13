@@ -1444,6 +1444,7 @@ static int axis_fifo_remove(struct platform_device *pdev)
 static const struct of_device_id axis_fifo_of_match[] = {
     { .compatible = "xlnx,axi-fifo-mm-s-4.1", },
     { .compatible = "xlnx,axi-fifo-mm-s-4.2", },
+    { .compatible = "xlnx,axi-fifo-mm-s-4.3", },
     {},
 };
 MODULE_DEVICE_TABLE(of, axis_fifo_of_match);
