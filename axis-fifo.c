@@ -14,6 +14,7 @@
  * ----------------------------
  */
 
+#include <linux/platform_device.h>
 #include <linux/kernel.h>
 #include <linux/wait.h>
 #include <linux/spinlock_types.h>
@@ -1424,7 +1425,7 @@ err_initial:
     return rc;
 }
 
-static int axis_fifo_remove(struct platform_device *pdev)
+static void axis_fifo_remove(struct platform_device *pdev)
 {
     struct device *dev = &pdev->dev;
     struct axis_fifo *fifo = dev_get_drvdata(dev);
@@ -1438,7 +1439,6 @@ static int axis_fifo_remove(struct platform_device *pdev)
     iounmap(fifo->base_addr);
     release_mem_region(fifo->mem->start, resource_size(fifo->mem));
     dev_set_drvdata(dev, NULL);
-    return 0;
 }
 
 static const struct of_device_id axis_fifo_of_match[] = {
@@ -1463,7 +1463,7 @@ static int __init axis_fifo_init(void)
 {
     pr_info("axis-fifo driver loaded with parameters read_timeout = %i, write_timeout = %i\n",
         read_timeout, write_timeout);
-    axis_fifo_driver_class = class_create(THIS_MODULE, DRIVER_NAME);
+    axis_fifo_driver_class = class_create(DRIVER_NAME);
     if (IS_ERR(axis_fifo_driver_class))
         return PTR_ERR(axis_fifo_driver_class);
     return platform_driver_register(&axis_fifo_driver);
