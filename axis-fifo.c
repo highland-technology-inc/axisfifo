@@ -61,6 +61,24 @@ static int write_timeout = 1000; /* ms to wait before write() times out */
 static DECLARE_WAIT_QUEUE_HEAD(axis_read_wait);
 static DECLARE_WAIT_QUEUE_HEAD(axis_write_wait);
 
+
+/*  If the system knows a priori that packets are of finite size, then
+	rx and tx cutthroughs are safe to use and reduce system latency.
+*/
+#ifndef RX_CUTTHROUGH
+    #define RX_CUTTHROUGH 0
+#endif
+#ifndef TX_CUTTHROUGH
+    #define TX_CUTTHROUGH 0
+#endif
+
+#if RX_CUTTHROUGH
+    #warning "rx-cutthrough enabled"
+#endif
+#if TX_CUTTHROUGH
+    #warning "tx-cutthrough enabled"
+#endif
+
 /* ----------------------------
  * module command-line arguments
  * ----------------------------
@@ -1249,20 +1267,24 @@ static int axis_fifo_probe(struct platform_device *pdev)
                   &tx_programmable_full_threshold);
     if (rc)
         goto err_unmap;
+
     rc = get_dts_property(fifo, "xlnx,use-rx-cut-through",
                   &use_rx_cut_through);
-    if (rc)
+    if (rc && (!RX_CUTTHROUGH))
         goto err_unmap;
+
     rc = get_dts_property(fifo, "xlnx,use-rx-data", &use_rx_data);
     if (rc)
         goto err_unmap;
     rc = get_dts_property(fifo, "xlnx,use-tx-ctrl", &use_tx_control);
     if (rc)
         goto err_unmap;
+
     rc = get_dts_property(fifo, "xlnx,use-tx-cut-through",
                   &use_tx_cut_through);
-    if (rc)
+    if (rc && (!TX_CUTTHROUGH))
         goto err_unmap;
+
     rc = get_dts_property(fifo, "xlnx,use-tx-data", &use_tx_data);
     if (rc)
         goto err_unmap;
@@ -1302,12 +1324,12 @@ static int axis_fifo_probe(struct platform_device *pdev)
         rc = -EIO;
         goto err_unmap;
     }
-    if (use_rx_cut_through) {
+    if (use_rx_cut_through && (!RX_CUTTHROUGH)) {
         dev_err(fifo->dt_device, "rx cut-through not supported\n");
         rc = -EIO;
         goto err_unmap;
     }
-    if (use_tx_cut_through) {
+    if (use_tx_cut_through && (!TX_CUTTHROUGH)) {
         dev_err(fifo->dt_device, "tx cut-through not supported\n");
         rc = -EIO;
         goto err_unmap;
